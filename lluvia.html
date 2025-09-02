@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Lluvia Te Adoro</title>
+<style>
+  body {
+    margin: 0;
+    background: black;
+    overflow: hidden;
+  }
+  canvas {
+    display: block;
+  }
+</style>
+</head>
+<body>
+<canvas id="matrix"></canvas>
+<script>
+const canvas = document.getElementById("matrix");
+const ctx = canvas.getContext("2d");
+
+canvas.width = innerWidth;
+canvas.height = innerHeight;
+
+const fontSize = 25;
+const cols = 10;
+const spacing = canvas.width / cols;
+const drops = Array.from({ length: cols }, () => Math.random() * canvas.height / fontSize);
+let heartbeat = 0;
+let hearts = [];
+
+// Velocidad de caída más lenta
+const speed = 0.25; // letras más lentas
+
+function draw() {
+  // Fondo con rastro limpio (opacidad un poco mayor para eliminar manchas grises)
+  ctx.fillStyle = "rgba(0,0,0,0.07)";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  // Texto descendente
+  ctx.fillStyle = "#ff69b4";
+  ctx.font = fontSize + "px monospace";
+  ctx.textAlign = "left";
+
+  for (let i = 0; i < cols; i++) {
+    const x = i * spacing + spacing / 40;
+    const y = drops[i] * fontSize;
+
+    // Mostrar cadena "Te adoro" continua por columna
+    for (let j = 0; j < 30; j++) {
+      const yy = y - j * fontSize;
+      if (yy > 0 && yy < canvas.height) {
+        ctx.fillText("Te adoro", x, yy);
+      }
+    }
+
+    drops[i] += speed;
+
+    if (y > canvas.height + fontSize * 30) {
+      drops[i] = 0;
+    }
+  }
+
+  // Texto central palpitante más lento y un poco más pequeño
+  heartbeat += 0.03; // latido suave
+  let scale = 1 + 0.05 * Math.sin(heartbeat);
+  ctx.save();
+  ctx.shadowColor = "#ff69b4";
+  ctx.shadowBlur = 25;
+  ctx.fillStyle = "#ffffff"; // texto central brillante
+  ctx.font = `${50 * scale}px monospace`; // tamaño reducido
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillText("Te Adoro", canvas.width / 2, canvas.height / 2);
+  ctx.restore();
+
+  // Corazones
+  hearts.forEach((heart, i) => {
+    ctx.save();
+    ctx.globalAlpha = 1 - heart.life / 30;
+    ctx.font = "160px serif";
+    ctx.fillStyle = "#ff69b4";
+    ctx.shadowColor = "#ff1493";
+    ctx.shadowBlur = 10;
+    ctx.textAlign = "center";
+    ctx.fillText("❤", heart.x, heart.y);
+    ctx.restore();
+    heart.x += heart.vx;
+    heart.y += heart.vy;
+    heart.life++;
+    if (heart.life > 30) hearts.splice(i, 1);
+  });
+
+  requestAnimationFrame(draw);
+}
+
+// Click: agregar corazón
+canvas.addEventListener("click", e => {
+  hearts.push({
+    x: e.clientX,
+    y: e.clientY,
+    vx: (Math.random() - 0.5) * 4,
+    vy: (Math.random() - 0.5) * 4,
+    life: 0
+  });
+});
+
+// Inicia animación
+draw();
+
+window.addEventListener("resize", () => {
+  canvas.width = innerWidth;
+  canvas.height = innerHeight;
+});
+</script>
+</body>
+</html>
